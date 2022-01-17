@@ -1,30 +1,12 @@
-[![Moleculer](https://badgen.net/badge/Powered%20by/Moleculer/0e83cd)](https://moleculer.services)
-
 # did-wallet-service
-This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).
+<a href="https://stromdao.de/" target="_blank" title="STROMDAO - Digital Energy Infrastructure"><img src="./static/stromdao.png" align="right" height="85px" hspace="30px" vspace="30px"></a>
+
+**This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).**
 
 ## Usage
-Start the project with `npm run dev` command. 
-After starting, open the http://localhost:3000/ URL in your browser. 
+Start the project with `npm run dev` command.
+After starting, open the http://localhost:3000/ URL in your browser.
 On the welcome page you can test the generated services via API Gateway and check the nodes & services.
-
-In the terminal, try the following commands:
-- `nodes` - List all connected nodes.
-- `actions` - List all registered service actions.
-- `call greeter.hello` - Call the `greeter.hello` action.
-- `call greeter.welcome --name John` - Call the `greeter.welcome` action with the `name` parameter.
-
-
-
-## Services
-- **api**: API Gateway services
-- **greeter**: Sample service with `hello` and `welcome` actions.
-
-
-## Useful links
-
-* Moleculer website: https://moleculer.services/
-* Moleculer Documentation: https://moleculer.services/docs/0.14/
 
 ## NPM scripts
 
@@ -35,3 +17,23 @@ In the terminal, try the following commands:
 - `npm test`: Run tests & generate coverage report
 - `npm run dc:up`: Start the stack with Docker Compose
 - `npm run dc:down`: Stop the stack with Docker Compose
+
+## Maintainer / Imprint
+
+<addr>
+STROMDAO GmbH  <br/>
+Gerhard Weiser Ring 29  <br/>
+69256 Mauer  <br/>
+Germany  <br/>
+  <br/>
++49 6226 968 009 0  <br/>
+  <br/>
+kontakt@stromdao.com  <br/>
+  <br/>
+Handelsregister: HRB 728691 (Amtsgericht Mannheim)
+</addr>
+
+Project Website: https://co2offset.io/
+
+## LICENSE
+[MIT](./LICENSE)
