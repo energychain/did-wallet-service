@@ -3,6 +3,15 @@
 
 **This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).**
 
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/energychain/did-wallet-service)
+
+## Quick-Start on Gitpod
+
+- start one terminal with `npm run dev`
+- start second terminal with `npm test`
+
+
 ## Usage
 Start the project with `npm run dev` command.
 After starting, open the http://localhost:3000/ URL in your browser.
@@ -36,4 +45,4 @@ Handelsregister: HRB 728691 (Amtsgericht Mannheim)
 Project Website: https://co2offset.io/
 
 ## LICENSE
-[MIT](./LICENSE)
+[Apache License 2.0](./LICENSE)
