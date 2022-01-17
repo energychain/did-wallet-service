@@ -51,7 +51,8 @@ module.exports = {
           let keys = identity.getIdentity();
           keys.storage = {
             schemas:[],
-						presentations:[]
+						presentations:[],
+						webhooks:{}
           };
           await ctx.call("kv.set",{key:ctx.params.identity,value:keys});
 					await ctx.call("kv.set",{key:"did:ethr:"+keys.publicKey,value:{resolve:ctx.params.identity}});
@@ -67,25 +68,42 @@ module.exports = {
         }
 			}
 		},
-    addSchema: {
+    addWebhook: {
       rest: {
         method: "GET",
-        path: "/addSchema"
+        path: "/addWebhook"
       },
       visibility:'protected',
       params: {
-        identity:"string"
+        identity:"string",
+				schema:"string",
+				url:"string"
       },
       async handler(ctx) {
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+        maskedidentity.storage.webhooks[ctx.params.schema] = ctx.params.url;
+        await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
+        return ctx.params.schema + "@" + ctx.params.url;
+      }
+    },
+		addSchema: {
+			rest: {
+				method: "GET",
+				path: "/addSchema"
+			},
+			visibility:'protected',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
 				let hash = ethers.utils.id(ctx.params.schema["$id"]);
 
 				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
-				console.log('addPresentation',ctx.params.identity,maskedidentity);
-        maskedidentity.storage.schemas[hash] = ctx.params.schema;
-        await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
-        return hash
-      }
-    },
+				maskedidentity.storage.schemas[hash] = ctx.params.schema;
+				await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
+				return hash
+			}
+		},
 		addPresentation: {
 			rest: {
 				method: "GET",
@@ -93,14 +111,54 @@ module.exports = {
 			},
 			visibility:'protected',
 			params: {
-				identity:"string"
+				identity:"string",
+				schema:"string"
 			},
 			async handler(ctx) {
 				let hash = ethers.utils.id(new Date().getTime());
+				let presentation = {
+					hash: hash
+				}
+
 				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
 				maskedidentity.storage.presentations[hash] = ctx.params.presentation;
 				await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
-				return hash
+				// Figure out if we have a schema definition for given schema - if validate
+				if(typeof maskedidentity.storage.schemas[ctx.params.schema] !== 'undefined') {
+					const schema = maskedidentity.storage.schemas[ctx.params.schema];
+
+					const Ajv = require("ajv");
+					const addFormats = require("ajv-formats");
+					const ajv = new Ajv({allErrors: true,strict: false, allowUnionTypes: true});
+					addFormats(ajv);
+
+					if(typeof schema["$id"] == 'undefined') {
+						schema["$id"] = 'local/tmp/' + new Date().getTime() + '/' + Math.random();
+					}
+					const v =  await ajv.getSchema(schema["$id"])
+									||  await ajv.compile(schema)
+					const valid = v(ctx.params.presentation.payload);
+					if(!valid) {
+						presentation.error = 'Schema validation failed';
+					} else {
+							if(typeof maskedidentity.storage.webhooks[ctx.params.schema] !== 'undefined') {
+								const url = maskedidentity.storage.webhooks[ctx.params.schema];
+								const axios = require("axios");
+								try {
+									const result = await axios.post(url,{presentation:ctx.params.presentation});
+									presentation.status = result.status;
+								} catch(e) {
+									presentation.status = -2;
+									presentation.error = e.message;
+								}
+								// TODO: Work with Response from PPS
+							} else {
+								presentation.status = -1;
+								presentation.error = 'No processor';
+							}
+					}
+				}
+				return presentation;
 			}
 		}
 	},

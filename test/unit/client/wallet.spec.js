@@ -21,11 +21,28 @@ const postToJWT = async (to,schema,jwt) => {
   }
 };
 
-describe("Test Client", () => {
+const APPLE_SCHEMA = {
+  "$id": "https://corrently.io/schemas/test.schema.apple.json",
+  "type": "object",
+  "properties": {
+    "cultivar": {
+        "type": "string",
+        "title": "Cultivar",
+        "description": "Type of Apple",
+        "enum":["Abram","Tamplin","Mutsu","Collins"]
+    }
+  },
+  "required": ["cultivar"]
+}
+
+describe("Test Client Wallet", () => {
   const parent = {};
   beforeAll(() => {
     const identity = new Identity();
       parent.config = {
+        identity:identity.getIdentity()
+      };
+      parent.partner = {
         identity:identity.getIdentity()
       };
   });
@@ -42,35 +59,32 @@ describe("Test Client", () => {
       }
       expect(did.payload.pong).toBeGreaterThan(did.payload.ping);
 		});
-    it("Sign Data", async () => {
+    it("register apple schema", async () => {
       let builder = new JWTBuilder(parent.config);
-      let payload = { "type": "CONTRL","sign": {time:new Date().getTime(),hello:'world'}};
+      let payload = { "type": "CONTRL","addSchema": APPLE_SCHEMA };
       let jwt = await builder.toJWT(payload);
       let resolver = new JWTResolver();
       let did = await resolver.toDid(await postJWT(jwt));
-      expect(did.payload.hello).toBe('world');
-      expect(did.issuer).toBe('did:ethr:'+parent.config.wallet.publicKey);
-    });
-    it("Present to", async () => {
-      const identity = new Identity();
-      let builder = new JWTBuilder({identity:identity.getIdentity()});
-      let payload = { "hello": "world"};
-      let jwt = await builder.toJWT(payload);
-      let resolver = new JWTResolver();
-      let did = await resolver.toDid(await postToJWT(parent.config.wallet.address,'0x0',jwt));
       expect(did.payload.type).toBe('CONTRL');
-      parent.presentationFromI2 = did.payload.presentation;
+      expect(did.payload.schema).not.toBeUndefined();
+      parent.schemaOfApple = did.payload.schema;
     });
-    it("Presentations", async () => {
+    it("List schemas", async () => {
       let builder = new JWTBuilder(parent.config);
-      let payload = { "type": "CONTRL","listPresentations": true};
+      let payload = { "type": "CONTRL","listSchemas": true };
       let jwt = await builder.toJWT(payload);
       let resolver = new JWTResolver();
       let did = await resolver.toDid(await postJWT(jwt));
-      expect(did.issuer).toBe('did:ethr:'+parent.config.wallet.publicKey);
-      expect(did.payload.presentations[parent.presentationFromI2]).not.toBeUndefined();
-      expect(did.payload.presentations[parent.presentationFromI2].signer.blockchainAccountId).not.toBe(parent.config.wallet.address);
+      expect(did.payload.type).toBe('CONTRL');
+      expect(did.payload.schemas).not.toBeUndefined();
+      expect(did.payload.schemas[parent.schemaOfApple]).not.toBeUndefined();
+	  });
+    it("Present an Apple", async () => {
+      let builder = new JWTBuilder(parent.partner);
+      let payload =  {"cultivar":"Abram"}; // Is an Apple
+      let jwt = await builder.toJWT(payload);
+      let resolver = new JWTResolver();
+      let did = await resolver.toDid(await postToJWT(parent.config.wallet.address,parent.schemaOfApple,jwt));
     });
-	});
-
+  });
 });
