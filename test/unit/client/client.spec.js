@@ -13,6 +13,13 @@ const postJWT = async (jwt) => {
   }
 };
 
+const postToJWT = async (to,jwt) => {
+  try {
+    return (await axios.post("http://127.0.0.1:3000/api/jwt/input",{did:jwt,wallet:to})).data;
+  } catch (e) {
+    return [];
+  }
+};
 
 describe("Test Client", () => {
   const parent = {};
@@ -44,7 +51,24 @@ describe("Test Client", () => {
       expect(did.payload.hello).toBe('world');
       expect(did.issuer).toBe('did:ethr:'+parent.config.wallet.publicKey);
     });
-
+    it("Present to", async () => {
+      const identity = new Identity();
+      let builder = new JWTBuilder({identity:identity.getIdentity()});
+      let payload = { "hello": "world"};
+      let jwt = await builder.toJWT(payload);
+      let resolver = new JWTResolver();
+      let did = await resolver.toDid(await postToJWT(parent.config.wallet.address,jwt));
+      expect(did.payload.type).toBe('CONTRL');
+    });
+    it("Presentations", async () => {
+      let builder = new JWTBuilder(parent.config);
+      let payload = { "type": "CONTRL","listPresentations": true};
+      let jwt = await builder.toJWT(payload);
+      let resolver = new JWTResolver();
+      let did = await resolver.toDid(await postJWT(jwt));
+      console.log(did);
+      expect(did.issuer).toBe('did:ethr:'+parent.config.wallet.publicKey);
+    });
 	});
 
 });

@@ -50,12 +50,20 @@ module.exports = {
           let identity = new Identity();
           let keys = identity.getIdentity();
           keys.storage = {
-            schemas:[]
+            schemas:[],
+						presentations:[]
           };
           await ctx.call("kv.set",{key:ctx.params.identity,value:keys});
+					await ctx.call("kv.set",{key:"did:ethr:"+keys.publicKey,value:{resolve:ctx.params.identity}});
+					await ctx.call("kv.set",{key:keys.publicKey,value:{resolve:ctx.params.identity}});
+					await ctx.call("kv.set",{key:keys.address,value:{resolve:ctx.params.identity}});
           return keys;
         } else {
-				   return maskedidentity;
+					if(typeof maskedidentity.resolve !== 'undefined') {
+						return await ctx.call("maskedidentity.get",{identity:maskedidentity.resolve});
+					} else {
+				    return maskedidentity;
+					}
         }
 			}
 		},
@@ -71,12 +79,30 @@ module.exports = {
       async handler(ctx) {
 				let hash = ethers.utils.id(ctx.params.schema["$id"]);
 
-        let maskedidentity = await ctx.call("kv.get",{key:ctx.params.identity});
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				console.log('addPresentation',ctx.params.identity,maskedidentity);
         maskedidentity.storage.schemas[hash] = ctx.params.schema;
         await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
         return hash
       }
-    }
+    },
+		addPresentation: {
+			rest: {
+				method: "GET",
+				path: "/addPresentation"
+			},
+			visibility:'protected',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
+				let hash = ethers.utils.id(new Date().getTime());
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				maskedidentity.storage.presentations[hash] = ctx.params.presentation;
+				await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
+				return hash
+			}
+		}
 	},
 
 	/**

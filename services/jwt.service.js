@@ -71,6 +71,12 @@ module.exports = {
 							  response.schemas[key] = value;
 							}
 						}
+						if(typeof did.payload.listPresentations !== 'undefined') {
+							response.presentations = {};
+							for (const [key, value] of Object.entries(maskedidentity.storage.presentations)) {
+								response.presentations[key] = value;
+							}
+						}
 						if(typeof did.payload.sign !== 'undefined') {
 							response = did.payload.sign;
 						}
@@ -78,6 +84,10 @@ module.exports = {
 							response.ping = did.payload.ping;
 							response.pong = new Date().getTime();
 						}
+					}
+				} else {
+					if(typeof ctx.params.wallet !== 'undefined') {
+						response.presentation = await ctx.call("maskedidentity.addPresentation",{identity:ctx.params.wallet,presentation:did});
 					}
 				}
 				// Stage 3 - Provide Responseas Did
