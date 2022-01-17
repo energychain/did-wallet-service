@@ -86,8 +86,12 @@ module.exports = {
 						}
 					}
 				} else {
-					if(typeof ctx.params.wallet !== 'undefined') {
-						response.presentation = await ctx.call("maskedidentity.addPresentation",{identity:ctx.params.wallet,presentation:did});
+					if(typeof ctx.params.wallet !== 'undefined') ctx.params.to = ctx.params.wallet;
+					if(typeof ctx.params.account !== 'undefined') ctx.params.to = ctx.params.account;
+					if(typeof ctx.params.identity !== 'undefined') ctx.params.to = ctx.params.identity;
+
+					if(typeof ctx.params.to !== 'undefined') {
+						response.presentation = await ctx.call("maskedidentity.addPresentation",{identity:ctx.params.to,presentation:did});
 					}
 				}
 				// Stage 3 - Provide Responseas Did
