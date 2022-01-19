@@ -29,6 +29,12 @@ const didComm = async function(jwt,to,schema) {
   });
 }
 
+const buffer = async function() {
+  $.getJSON("/api/dummy/buffer",function(data) {
+    window.editorIn.set(data);
+  });
+}
+
 const ping = function() {
   return new Promise(async function(resolve,reject) {
       let builder = new WebClient.JWTBuilder({identity:window.identity});
@@ -67,6 +73,17 @@ const addSchema = function() {
     location.href='#editorFiller';
   });
 }
+const addWebhook = function() {
+  let data = { "type": "CONTRL","addWebhook": {
+    schema:'0x...',
+    url:location.protocol+"//"+location.host+'/api/dummy/buffer?info=apple'
+  } };
+
+  $('#skeletonTitle').html('edit webhook submission');
+  window.editorFiller.set(data);
+  $('#btnApplySend').attr('data-apply','webhook');
+  location.href='#editorFiller';
+}
 
 const addPresentation = function() {
     $('.extEdit').show();
@@ -90,6 +107,12 @@ const applySend = function() {
        let payload = window.editorFiller.get();
        window.editorOut.set(payload);
        didComm(await builder.toJWT(payload),$('#presentTo').val(),$('#presentSchema').val());
+     }
+     if($('#btnApplySend').attr('data-apply') == 'webhook') {
+       let builder = new WebClient.JWTBuilder({identity:window.identity});
+       let payload = window.editorFiller.get();
+       window.editorOut.set(payload);
+       didComm(await builder.toJWT(payload));
      }
      resolve();
    });
@@ -120,6 +143,8 @@ $(document).ready(async function() {
   $('#btnPresentations').click(presentations);
   $('#btnSchemas').click(schemas);
   $('#btnAddSchema').click(addSchema);
+  $('#btnAddWebhook').click(addWebhook);
   $('#btnAddPresentation').click(addPresentation);
   $('#btnApplySend').click(applySend);
+  $('#btnBuffer').click(buffer);
 })
