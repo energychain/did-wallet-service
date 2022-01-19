@@ -42,9 +42,6 @@ module.exports = {
 				method: "POST",
 				path: "/input"
 			},
-			params: {
-				did:"string"
-			},
 			async handler(ctx) {
 				let response = {type:'CONTRL'};
 
@@ -58,61 +55,64 @@ module.exports = {
 					response.type = 'APERAK';
 					response.error = e.message;
 				}
-				const maskedidentity = await ctx.call("maskedidentity.get",{identity:did.issuer});
+				const maskedidentity = await ctx.call("maskedidentity.get",{identity:did.issuer});				
 				// Stage 2 - Parse DID (what todo with it)
-				if((typeof did.payload.type !== 'undefined') && (did.payload.type !== null)) {
-					if(did.payload.type == 'CONTRL') {
-						if(typeof did.payload.addSchema !== 'undefined') {
-							response.schema = await ctx.call("maskedidentity.addSchema",{identity:did.issuer,schema:did.payload.addSchema});
-						}
-						if(typeof did.payload.addWebhook !== 'undefined') {
-							response.webhook = await ctx.call("maskedidentity.addWebhook",{
-								identity:did.issuer,
-								url:did.payload.addWebhook.url,
-								schema:did.payload.addWebhook.schema
-							});
-						}
-						if(typeof did.payload.listSchemas !== 'undefined') {
-							response.schemas = {};
-							for (const [key, value] of Object.entries(maskedidentity.storage.schemas)) {
-							  response.schemas[key] = value;
+				if(typeof response.error == 'undefined') {
+					if((typeof did.payload.type !== 'undefined') && (did.payload.type !== null)) {
+						if(did.payload.type == 'CONTRL') {
+							if(typeof did.payload.addSchema !== 'undefined') {
+								response.schema = await ctx.call("maskedidentity.addSchema",{identity:did.issuer,schema:did.payload.addSchema});
 							}
-						}
-						if(typeof did.payload.listWebhooks !== 'undefined') {
-							response.webhooks = {};
-							for (const [key, value] of Object.entries(maskedidentity.storage.webhooks)) {
-								response.webhooks[key] = value;
+							if(typeof did.payload.addWebhook !== 'undefined') {
+								response.webhook = await ctx.call("maskedidentity.addWebhook",{
+									identity:did.issuer,
+									url:did.payload.addWebhook.url,
+									schema:did.payload.addWebhook.schema
+								});
 							}
-						}
-						if(typeof did.payload.listPresentations !== 'undefined') {
-							response.presentations = {};
-							for (const [key, value] of Object.entries(maskedidentity.storage.presentations)) {
-								response.presentations[key] = value;
+							if(typeof did.payload.listSchemas !== 'undefined') {
+								response.schemas = {};
+								for (const [key, value] of Object.entries(maskedidentity.storage.schemas)) {
+								  response.schemas[key] = value;
+								}
 							}
-						}
-						if(typeof did.payload.sign !== 'undefined') {
-							response = did.payload.sign;
-						}
-						if(typeof did.payload.ping !== 'undefined') {
-							response.ping = did.payload.ping;
-							response.pong = new Date().getTime();
-						}
-					}
-				} else {
-					if(typeof ctx.params.wallet !== 'undefined') ctx.params.to = ctx.params.wallet;
-					if(typeof ctx.params.account !== 'undefined') ctx.params.to = ctx.params.account;
-					if(typeof ctx.params.identity !== 'undefined') ctx.params.to = ctx.params.identity;
-
-					if((typeof ctx.params.to !== 'undefined')&&(typeof ctx.params.schema !== 'undefined')) {
-						let presentation  = await ctx.call("maskedidentity.addPresentation",{identity:ctx.params.to,presentation:did,schema:ctx.params.schema});
-						response.presentation = presentation.hash;
-						if(typeof presentation.error !== 'undefined') {
-							response.type = "APERAK";
-							response.error = presentation.error;
+							if(typeof did.payload.listWebhooks !== 'undefined') {
+								response.webhooks = {};
+								for (const [key, value] of Object.entries(maskedidentity.storage.webhooks)) {
+									response.webhooks[key] = value;
+								}
+							}
+							if(typeof did.payload.listPresentations !== 'undefined') {
+								response.presentations = {};
+								for (const [key, value] of Object.entries(maskedidentity.storage.presentations)) {
+									response.presentations[key] = value;
+								}
+							}
+							if(typeof did.payload.sign !== 'undefined') {
+								response = did.payload.sign;
+							}
+							if(typeof did.payload.ping !== 'undefined') {
+								response.ping = did.payload.ping;
+								response.pong = new Date().getTime();
+								response.address = maskedidentity.address;
+							}
 						}
 					} else {
-						response.type = "APERAK";
-						response.error = "Presentation without Schema";
+						if(typeof ctx.params.wallet !== 'undefined') ctx.params.to = ctx.params.wallet;
+						if(typeof ctx.params.account !== 'undefined') ctx.params.to = ctx.params.account;
+						if(typeof ctx.params.identity !== 'undefined') ctx.params.to = ctx.params.identity;
+
+						if((typeof ctx.params.to !== 'undefined')&&(typeof ctx.params.schema !== 'undefined')) {
+							let presentation  = await ctx.call("maskedidentity.addPresentation",{identity:ctx.params.to,presentation:did,schema:ctx.params.schema});
+							response.presentation = presentation.hash;
+							if(typeof presentation.error !== 'undefined') {
+								response.type = "APERAK";
+								response.error = presentation.error;
+							}
+						} else {
+							response.type = "APERAK";
+							response.error = "Presentation without Schema";
+						}
 					}
 				}
 				// Stage 3 - Provide Responseas Did

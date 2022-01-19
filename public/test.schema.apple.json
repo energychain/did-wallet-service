@@ -1,0 +1,13 @@
+{
+  "$id": "https://corrently.io/schemas/test.schema.apple.json",
+  "type": "object",
+  "properties": {
+    "cultivar": {
+        "type": "string",
+        "title": "Cultivar",
+        "description": "Type of Apple",
+        "enum":["Abram","Tamplin","Mutsu","Collins"]
+    }
+  },
+  "required": ["cultivar"]
+}
