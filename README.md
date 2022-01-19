@@ -5,6 +5,7 @@
 
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/energychain/did-wallet-service)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fenergychain%2Fdid-wallet-service.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fenergychain%2Fdid-wallet-service?ref=badge_shield)
 
 ## Quick-Start on Gitpod
 
@@ -46,3 +47,6 @@ Project Website: https://co2offset.io/
 
 ## LICENSE
 [Apache License 2.0](./LICENSE)
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fenergychain%2Fdid-wallet-service.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fenergychain%2Fdid-wallet-service?ref=badge_large)
