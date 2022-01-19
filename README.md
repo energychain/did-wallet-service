@@ -3,6 +3,8 @@
 
 **This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).**
 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fenergychain%2Fdid-wallet-service.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fenergychain%2Fdid-wallet-service?ref=badge_shield)
+
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/energychain/did-wallet-service)
 
