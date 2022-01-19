@@ -1,7 +1,7 @@
 "use strict";
 
 const DbService = require("moleculer-db");
-const Identity = require("../lib/Identity.js");
+const Identity = require("did-wallet-web").Identity;
 const ethers = require("ethers");
 
 /**

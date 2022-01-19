@@ -46,7 +46,8 @@ module.exports = {
 				let response = {type:'CONTRL'};
 
 				// Stage 1 - Resolve DID
-				const JWTResolver = require("../lib/JWTResolver.js");
+				const JWTResolver = require("did-wallet-web").JWTResolver;
+
 				const resolver = new JWTResolver(this.settings.resolver);
 				let did = { issuer: 'internal:0x0',payload:{} }
 				try {
@@ -55,7 +56,7 @@ module.exports = {
 					response.type = 'APERAK';
 					response.error = e.message;
 				}
-				const maskedidentity = await ctx.call("maskedidentity.get",{identity:did.issuer});				
+				const maskedidentity = await ctx.call("maskedidentity.get",{identity:did.issuer});
 				// Stage 2 - Parse DID (what todo with it)
 				if(typeof response.error == 'undefined') {
 					if((typeof did.payload.type !== 'undefined') && (did.payload.type !== null)) {
@@ -116,7 +117,7 @@ module.exports = {
 					}
 				}
 				// Stage 3 - Provide Responseas Did
-				const JWTBuilder = require("../lib/JWTBuilder.js");
+				const JWTBuilder = require("did-wallet-web").JWTBuilder;
 				const builder = new JWTBuilder({identity:maskedidentity});
 				return builder.toJWT(response);
 			}
