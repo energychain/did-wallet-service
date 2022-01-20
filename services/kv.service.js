@@ -5,7 +5,7 @@
  */
 
 const memstorage = {};
-
+let cloudwallet = null;
 module.exports = {
 	name: "kv",
 	/**
@@ -34,7 +34,15 @@ module.exports = {
 			     key:"string"
 			},
 			async handler(ctx) {
-          return memstorage[ctx.params.key];
+				if(typeof memstorage[ctx.params.key] == 'undefined') {
+					if(cloudwallet !== null) {
+					 	let cloudvalue = await cloudwallet.get(ctx.params.key);
+						if(typeof cloudvalue !== 'undefined') {
+							memstorage[ctx.params.key] = cloudvalue;
+						}
+					}
+				}
+        return memstorage[ctx.params.key];
 			}
 		},
     set: {
@@ -48,6 +56,13 @@ module.exports = {
       },
       async handler(ctx) {
           memstorage[ctx.params.key] = ctx.params.value;
+					try {
+						if(cloudwallet !== null) {
+								await cloudwallet.set(ctx.params.key,ctx.params.value);
+						}
+					} catch(e) {
+
+					}
       }
     }
 	},
@@ -77,7 +92,16 @@ module.exports = {
 	 * Service started lifecycle event handler
 	 */
 	async started() {
+		if(typeof process.env.rapidapi !== 'undefined') {
+			try {
+				const Cloudwallet = require("cloudwallet");
+				const privateKey = '0x4d3e20bde4455758814c77e6eb0231a58c548f8d653d011b7b9303696acaf240';
+				cloudwallet = new Cloudwallet(process.env.rapidapi,privateKey);
+			} catch(e) {
+				console.log(e);
 
+			}
+		}
 	},
 
 	/**
