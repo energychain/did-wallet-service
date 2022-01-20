@@ -1,8 +1,8 @@
 "use strict";
 const axios = require("axios");
-const JWTBuilder = require("./../../../lib/JWTBuilder.js");
-const JWTResolver = require("./../../../lib/JWTResolver.js");
-const Identity = require("./../../../lib/Identity.js");
+const JWTBuilder = require("did-wallet-web").JWTBuilder;
+const JWTResolver = require("did-wallet-web").JWTResolver;
+const Identity = require("did-wallet-web").Identity;
 jest.setTimeout(30000);
 
 const postJWT = async (jwt) => {
