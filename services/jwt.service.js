@@ -72,22 +72,19 @@ module.exports = {
 								});
 							}
 							if(typeof did.payload.listSchemas !== 'undefined') {
-								response.schemas = {};
-								for (const [key, value] of Object.entries(maskedidentity.storage.schemas)) {
-								  response.schemas[key] = value;
-								}
+								response.schemas = await ctx.call("maskedidentity.listSchemas",{
+									identity:did.issuer
+								});
 							}
 							if(typeof did.payload.listWebhooks !== 'undefined') {
-								response.webhooks = {};
-								for (const [key, value] of Object.entries(maskedidentity.storage.webhooks)) {
-									response.webhooks[key] = value;
-								}
+								response.schemas = await ctx.call("maskedidentity.listWebhooks",{
+									identity:did.issuer
+								});
 							}
 							if(typeof did.payload.listPresentations !== 'undefined') {
-								response.presentations = {};
-								for (const [key, value] of Object.entries(maskedidentity.storage.presentations)) {
-									response.presentations[key] = value;
-								}
+								response.presentations = await ctx.call("maskedidentity.listPresentations",{
+									identity:did.issuer
+								});
 							}
 							if(typeof did.payload.sign !== 'undefined') {
 								response = did.payload.sign;

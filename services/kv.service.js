@@ -1,11 +1,13 @@
 "use strict";
 
+const Cloudwallet = require("cloudwallet");
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
-
+const masterKey = '0x4d3e20bde4455758814c77e6eb0231a58c548f8d653d011b7b9303696acaf240';
 const memstorage = {};
-let cloudwallet = null;
+let masterwallet = null;
+
 module.exports = {
 	name: "kv",
 	/**
@@ -34,15 +36,22 @@ module.exports = {
 			     key:"string"
 			},
 			async handler(ctx) {
-				if(typeof memstorage[ctx.params.key] == 'undefined') {
-					if(cloudwallet !== null) {
-					 	let cloudvalue = await cloudwallet.get(ctx.params.key);
+				if((typeof ctx.params.privateKey == 'undefined')||(ctx.params.privateKey == null)) {
+					ctx.params.privateKey = masterKey;
+				}
+				if(typeof memstorage[ctx.params.privateKey] == 'undefined') {
+					 memstorage[ctx.params.privateKey] = {};
+				}
+				if(typeof memstorage[ctx.params.privateKey][ctx.params.key] == 'undefined') {
+					if(masterwallet !== null) {
+						let wallet = new Cloudwallet(process.env.rapidapi,ctx.params.privateKey);
+					 	let cloudvalue = await wallet.get(ctx.params.key);
 						if(typeof cloudvalue !== 'undefined') {
-							memstorage[ctx.params.key] = cloudvalue;
+							memstorage[ctx.params.privateKey][ctx.params.key] = JSON.parse(cloudvalue);
 						}
 					}
 				}
-        return memstorage[ctx.params.key];
+        return memstorage[ctx.params.privateKey][ctx.params.key];
 			}
 		},
     set: {
@@ -55,13 +64,22 @@ module.exports = {
            key:"string"
       },
       async handler(ctx) {
-          memstorage[ctx.params.key] = ctx.params.value;
+					 if((typeof ctx.params.privateKey == 'undefined')||(ctx.params.privateKey == null)) {
+							ctx.params.privateKey = masterKey;
+					 }
+					 if(typeof memstorage[ctx.params.privateKey] == 'undefined') {
+							 memstorage[ctx.params.privateKey] = {};
+					 }
+
+           memstorage[ctx.params.privateKey][ctx.params.key] = ctx.params.value;
 					try {
-						if(cloudwallet !== null) {
-								await cloudwallet.set(ctx.params.key,ctx.params.value);
+						if(masterwallet !== null) {
+								let wallet = new Cloudwallet(process.env.rapidapi,ctx.params.privateKey);
+							 	await wallet.set(ctx.params.key,JSON.stringify(ctx.params.value));
+								await wallet.set('_update',new Date().getTime());
 						}
 					} catch(e) {
-
+						console.log("Error in CW",e);
 					}
       }
     }
@@ -92,14 +110,12 @@ module.exports = {
 	 * Service started lifecycle event handler
 	 */
 	async started() {
+		memstorage[masterKey] =  {};
 		if(typeof process.env.rapidapi !== 'undefined') {
 			try {
-				const Cloudwallet = require("cloudwallet");
-				const privateKey = '0x4d3e20bde4455758814c77e6eb0231a58c548f8d653d011b7b9303696acaf240';
-				cloudwallet = new Cloudwallet(process.env.rapidapi,privateKey);
+				masterwallet = new Cloudwallet(process.env.rapidapi,masterKey);
 			} catch(e) {
 				console.log(e);
-
 			}
 		}
 	},

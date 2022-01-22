@@ -1,6 +1,5 @@
 "use strict";
 
-const DbService = require("moleculer-db");
 const Identity = require("did-wallet-web").Identity;
 const ethers = require("ethers");
 
@@ -48,17 +47,11 @@ module.exports = {
         let maskedidentity = await ctx.call("kv.get",{key:ctx.params.identity});
         if((typeof maskedidentity == 'undefined') || (maskedidentity == null)) {
           let identity = new Identity();
-          let keys = identity.getIdentity();
-          keys.storage = {
-            schemas:[],
-						presentations:[],
-						webhooks:{}
-          };
-          await ctx.call("kv.set",{key:ctx.params.identity,value:keys});
-					await ctx.call("kv.set",{key:"did:ethr:"+keys.publicKey,value:{resolve:ctx.params.identity}});
-					await ctx.call("kv.set",{key:keys.publicKey,value:{resolve:ctx.params.identity}});
-					await ctx.call("kv.set",{key:keys.address,value:{resolve:ctx.params.identity}});
-          return keys;
+          let values = identity.getIdentity();
+          await ctx.call("kv.set",{key:ctx.params.identity,value:values});
+					await ctx.call("kv.set",{key:values.address,value:{resolve:ctx.params.identity}});
+					await ctx.call("kv.set",{key:values.identifier,value:{resolve:ctx.params.identity}});
+          return values;
         } else {
 					if(typeof maskedidentity.resolve !== 'undefined') {
 						return await ctx.call("maskedidentity.get",{identity:maskedidentity.resolve});
@@ -81,11 +74,28 @@ module.exports = {
       },
       async handler(ctx) {
 				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
-        maskedidentity.storage.webhooks[ctx.params.schema] = ctx.params.url;
-        await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
+				let storage = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'webhooks'});
+				if((typeof storage == 'undefined') || (storage == null)) storage = {};
+				storage[ctx.params.schema] = ctx.params.url;
+				await ctx.call("kv.set",{privateKey:maskedidentity.privateKey,key:'webhooks',value:storage});
         return ctx.params.schema + "@" + ctx.params.url;
       }
     },
+		listWebhooks:{
+			rest: {
+				method: "GET",
+				path: "/listWebhooks"
+			},
+			visibility:'protected',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				let schemas = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'webhooks'});
+				return schemas;
+			}
+		},
 		addSchema: {
 			rest: {
 				method: "GET",
@@ -97,11 +107,27 @@ module.exports = {
 			},
 			async handler(ctx) {
 				let hash = ethers.utils.id(ctx.params.schema["$id"]);
-
 				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
-				maskedidentity.storage.schemas[hash] = ctx.params.schema;
-				await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
+				let schemas = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'schemas'});
+				if((typeof schemas == 'undefined') || (schemas == null)) schemas = {};
+				schemas[hash] = ctx.params.schema;
+				await ctx.call("kv.set",{privateKey:maskedidentity.privateKey,key:'schemas',value:schemas});
 				return hash
+			}
+		},
+		listSchemas:{
+			rest: {
+				method: "GET",
+				path: "/listSchemas"
+			},
+			visibility:'protected',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				let schemas = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'schemas'});
+				return schemas;
 			}
 		},
 		addPresentation: {
@@ -121,11 +147,16 @@ module.exports = {
 				}
 
 				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
-				maskedidentity.storage.presentations[hash] = ctx.params.presentation;
-				await ctx.call("kv.set",{key:ctx.params.identity,value:maskedidentity});
+				let storage = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'presentations'});
+				if((typeof storage == 'undefined') || (storage == null)) storage = {};
+				storage[hash] = ctx.params.presentation;
+				await ctx.call("kv.set",{privateKey:maskedidentity.privateKey,key:'presentations',value:storage});
+				const schemas = await ctx.call("maskedidentity.listSchemas",{
+					identity:ctx.params.identity
+				})
 				// Figure out if we have a schema definition for given schema - if validate
-				if(typeof maskedidentity.storage.schemas[ctx.params.schema] !== 'undefined') {
-					const schema = maskedidentity.storage.schemas[ctx.params.schema];
+				if((typeof schemas !== 'undefined') && (typeof schemas[ctx.params.schema] !== 'undefined')) {
+					const schema = schemas[ctx.params.schema];
 
 					const Ajv = require("ajv");
 					const addFormats = require("ajv-formats");
@@ -141,8 +172,11 @@ module.exports = {
 					if(!valid) {
 						presentation.error = 'Schema validation failed';
 					} else {
-							if(typeof maskedidentity.storage.webhooks[ctx.params.schema] !== 'undefined') {
-								const url = maskedidentity.storage.webhooks[ctx.params.schema];
+							const webhooks = await ctx.call("maskedidentity.listWebhooks",{
+								identity:ctx.params.identity
+							})
+							if(typeof webhooks[ctx.params.schema] !== 'undefined') {
+								const url = webhooks[ctx.params.schema];
 								const axios = require("axios");
 								try {
 									const result = await axios.post(url,{presentation:ctx.params.presentation});
@@ -159,6 +193,21 @@ module.exports = {
 					}
 				}
 				return presentation;
+			}
+		},
+		listPresentations:{
+			rest: {
+				method: "GET",
+				path: "/listPresentations"
+			},
+			visibility:'protected',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				let schemas = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'presentations'});
+				return schemas;
 			}
 		}
 	},

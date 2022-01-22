@@ -29,7 +29,7 @@
     "ajv": "^8.9.0",
     "ajv-formats": "^2.1.1",
     "axios": "^0.24.0",
-    "cloudwallet": "^0.5.4",
+    "cloudwallet": "^0.5.8",
     "did-resolver": "^3.1.5",
     "did-wallet-web": "^0.5.0",
     "eth-crypto": "^2.1.0",
@@ -39,7 +39,6 @@
     "ipfs": "^0.61.0",
     "jsontokens": "^3.0.0",
     "moleculer": "^0.14.16",
-    "moleculer-db": "^0.8.17",
     "moleculer-web": "^0.10.2",
     "orbit-db": "^0.28.0"
   },
