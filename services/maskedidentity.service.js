@@ -44,8 +44,10 @@ module.exports = {
 				identity:"string"
 			},
 			async handler(ctx) {
+				console.log("maskedidentity.get():",ctx.params.identity);
         let maskedidentity = await ctx.call("kv.get",{key:ctx.params.identity});
         if((typeof maskedidentity == 'undefined') || (maskedidentity == null)) {
+					console.log("Creation");
           let identity = new Identity();
           let values = identity.getIdentity();
           await ctx.call("kv.set",{key:ctx.params.identity,value:values});
@@ -54,6 +56,7 @@ module.exports = {
           return values;
         } else {
 					if(typeof maskedidentity.resolve !== 'undefined') {
+						console.log("Resolving");
 						return await ctx.call("maskedidentity.get",{identity:maskedidentity.resolve});
 					} else {
 				    return maskedidentity;
@@ -147,13 +150,16 @@ module.exports = {
 				}
 
 				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				console.log("Adding Presentation to:",maskedidentity);
 				let storage = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'presentations'});
+				console.log('Existing PResentations',storage);
 				if((typeof storage == 'undefined') || (storage == null)) storage = {};
 				storage[hash] = ctx.params.presentation;
 				await ctx.call("kv.set",{privateKey:maskedidentity.privateKey,key:'presentations',value:storage});
 				const schemas = await ctx.call("maskedidentity.listSchemas",{
 					identity:ctx.params.identity
 				})
+				console.log("Has Schemas",schemas);
 				// Figure out if we have a schema definition for given schema - if validate
 				if((typeof schemas !== 'undefined') && (typeof schemas[ctx.params.schema] !== 'undefined')) {
 					const schema = schemas[ctx.params.schema];
