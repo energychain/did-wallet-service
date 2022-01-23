@@ -181,7 +181,8 @@ module.exports = {
 							const webhooks = await ctx.call("maskedidentity.listWebhooks",{
 								identity:ctx.params.identity
 							})
-							if(typeof webhooks[ctx.params.schema] !== 'undefined') {
+							console.log('Webhooks eists for',webhooks);
+							if((typeof webhooks !== 'undefined') && (webhooks !== null) && (typeof webhooks[ctx.params.schema] !== 'undefined')) {
 								const url = webhooks[ctx.params.schema];
 								const axios = require("axios");
 								try {

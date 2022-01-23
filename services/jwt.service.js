@@ -72,9 +72,16 @@ module.exports = {
 								});
 							}
 							if(typeof did.payload.listSchemas !== 'undefined') {
-								response.schemas = await ctx.call("maskedidentity.listSchemas",{
-									identity:did.issuer
-								});
+								// If no issuer is specified we use our personal....
+								if(typeof ctx.params.to !== 'undefined') {
+									response.schemas = await ctx.call("maskedidentity.listSchemas",{
+										identity:ctx.params.to
+									});
+								} else {
+									response.schemas = await ctx.call("maskedidentity.listSchemas",{
+										identity:did.issuer
+									});
+								}
 							}
 							if(typeof did.payload.listWebhooks !== 'undefined') {
 								response.schemas = await ctx.call("maskedidentity.listWebhooks",{

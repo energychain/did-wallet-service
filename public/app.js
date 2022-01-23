@@ -94,6 +94,17 @@ const addPresentation = function() {
     location.href='#editorFiller';
   });
 }
+
+const schemasTo = function() {
+    $('.extEdit').show();
+    $('#skeletonTitle').html('list schemas of');
+    let payload = { "type": "CONTRL","listSchemas": true };
+    window.editorFiller.set(payload);
+    $('#btnApplySend').attr('data-apply','schemasTo');
+    location.href='#editorFiller';
+}
+
+
 const applySend = function() {
   return new Promise(async function(resolve,reject) {
      if($('#btnApplySend').attr('data-apply') == 'schema') {
@@ -114,6 +125,13 @@ const applySend = function() {
        window.editorOut.set(payload);
        didComm(await builder.toJWT(payload));
      }
+     if($('#btnApplySend').attr('data-apply') == 'schemasTo') {
+       let builder = new WebClient.JWTBuilder({identity:window.identity});
+       let payload = window.editorFiller.get();
+       window.editorOut.set(payload);
+       didComm(await builder.toJWT(payload),$('#presentTo').val());
+     }
+
      resolve();
    });
 }
@@ -126,7 +144,6 @@ $(document).ready(async function() {
   window.editorFiller = new JSONEditor(containerFiller, options);
   window.editorOut = new JSONEditor(containerOut, options);
   window.editorIn = new JSONEditor(containerIn, options);
-
 
   window.identity = window.localStorage.getItem("identity");
   if((typeof window.identity == 'undefined') || (window.identity == null)) {
@@ -144,6 +161,7 @@ $(document).ready(async function() {
   $('#btnSchemas').click(schemas);
   $('#btnAddSchema').click(addSchema);
   $('#btnAddWebhook').click(addWebhook);
+  $('#btnSchemasTo').click(schemasTo);
   $('#btnAddPresentation').click(addPresentation);
   $('#btnApplySend').click(applySend);
   $('#btnBuffer').click(buffer);
