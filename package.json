@@ -32,6 +32,7 @@
     "cloudwallet": "^0.5.8",
     "did-resolver": "^3.1.5",
     "did-wallet-web": "^0.5.0",
+    "dotenv": "^14.2.0",
     "eth-crypto": "^2.1.0",
     "ethers": "^5.5.3",
     "ethr-did": "^2.2.0",

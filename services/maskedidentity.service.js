@@ -118,6 +118,41 @@ module.exports = {
 				return hash
 			}
 		},
+		retrievePresentation: {
+			rest: {
+				method: "GET",
+				path: "/retrievePresentation"
+			},
+			visibility:'protected',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.resolver});
+				let pds = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:"pds"});
+				if((typeof pds == 'undefined') || (pds == null)) pds = {};
+				if(typeof pds[ctx.params.schema] !== 'undefined') {
+							let profile = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:pds[ctx.params.schema].id});
+							let schemas = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'schemas'});
+							let schema = schemas[pds[ctx.params.schema].input_descriptors[0].id];
+
+							console.log('schema',schema);
+							const Ajv = require("ajv");
+							const addFormats = require("ajv-formats");
+							const ajv = new Ajv({allErrors: true,strict: false, allowUnionTypes: true,removeAdditional: true});
+							const validate = ajv.compile(schema);
+							validate(profile);
+							// Soft Validation on rool level (see limit in AJV)
+							let nprofile = {};
+							for (const [key, value] of Object.entries(schema.properties)) {
+							  nprofile[key] = profile[key];
+							}
+							return nprofile;
+				} else {
+					return {err:'Not allowed - VC does not exists'};
+				}
+			}
+		},
 		listSchemas:{
 			rest: {
 				method: "GET",
@@ -133,6 +168,50 @@ module.exports = {
 				return schemas;
 			}
 		},
+		listPDs: {
+			rest: {
+				method: "GET",
+				path: "/listPDs"
+			},
+			visibility:'protected',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				let schemas = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'pds'});
+				return schemas;
+			}
+		},
+		addPD: {
+			rest: {
+				method: "GET",
+				path: "/addPD"
+			},
+			visibility:'published',
+			params: {
+				identity:"string"
+			},
+			async handler(ctx) {
+				let hash = ethers.utils.id(ctx.params.identity + '_'+new Date().getTime());
+				console.log('Adding PD',hash);
+				console.log('For ID',ctx.params.identity);
+				console.log('Of Id',ctx.params.from);
+				ctx.params.pd.id = ctx.params.from;
+				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
+				let pds = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'pds'});
+				if((typeof pds == 'undefined') || (pds == null)) pds = {};
+				pds[hash] = ctx.params.pd;
+				await ctx.call("kv.set",{privateKey:maskedidentity.privateKey,key:'pds',value:pds});
+				return {
+					vp: {
+						schema:hash,
+						identity:ctx.params.identity,
+						audience:ctx.params.pd.input_descriptors.purpose
+				}
+			}
+		}
+		},
 		addPresentation: {
 			rest: {
 				method: "GET",
@@ -144,22 +223,20 @@ module.exports = {
 				schema:"string"
 			},
 			async handler(ctx) {
-				let hash = ethers.utils.id(new Date().getTime());
+
+				let hash = ethers.utils.id(ctx.params.from + "_" + ctx.params.identity + "_" + new Date().getTime());
 				let presentation = {
 					hash: hash
 				}
 
 				let maskedidentity = await ctx.call("maskedidentity.get",{identity:ctx.params.identity});
-				console.log("Adding Presentation to:",maskedidentity);
 				let storage = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:'presentations'});
-				console.log('Existing PResentations',storage);
 				if((typeof storage == 'undefined') || (storage == null)) storage = {};
 				storage[hash] = ctx.params.presentation;
 				await ctx.call("kv.set",{privateKey:maskedidentity.privateKey,key:'presentations',value:storage});
 				const schemas = await ctx.call("maskedidentity.listSchemas",{
 					identity:ctx.params.identity
 				})
-				console.log("Has Schemas",schemas);
 				// Figure out if we have a schema definition for given schema - if validate
 				if((typeof schemas !== 'undefined') && (typeof schemas[ctx.params.schema] !== 'undefined')) {
 					const schema = schemas[ctx.params.schema];
@@ -181,7 +258,6 @@ module.exports = {
 							const webhooks = await ctx.call("maskedidentity.listWebhooks",{
 								identity:ctx.params.identity
 							})
-							console.log('Webhooks eists for',webhooks);
 							if((typeof webhooks !== 'undefined') && (webhooks !== null) && (typeof webhooks[ctx.params.schema] !== 'undefined')) {
 								const url = webhooks[ctx.params.schema];
 								const axios = require("axios");
@@ -197,6 +273,15 @@ module.exports = {
 								presentation.status = -1;
 								presentation.error = 'No processor';
 							}
+							// work with From - and add values to profile
+							let storage = await ctx.call("kv.get",{privateKey:maskedidentity.privateKey,key:ctx.params.from});
+							if((typeof storage == 'undefined') || (storage == null)) storage = {};
+							for (const [key, value] of Object.entries(ctx.params.presentation.payload)) {
+							  storage[key] = value;
+							}
+							console.log('Profile Storage',storage);
+							await ctx.call("kv.set",{privateKey:maskedidentity.privateKey,key:ctx.params.from,value:storage});
+						  presentation.profiled = true;
 					}
 				}
 				return presentation;

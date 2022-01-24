@@ -64,6 +64,15 @@ const presentations = function() {
       resolve();
   });
 }
+const pds = function() {
+  return new Promise(async function(resolve,reject) {
+      let builder = new WebClient.JWTBuilder({identity:window.identity});
+      let payload = { "type": "CONTRL","listPDs": true };
+      window.editorOut.set(payload);
+      didComm(await builder.toJWT(payload));
+      resolve();
+  });
+}
 
 const addSchema = function() {
   $.getJSON("./test.schema.apple.json",function(data) {
@@ -94,7 +103,26 @@ const addPresentation = function() {
     location.href='#editorFiller';
   });
 }
-
+const addPD = function() {
+  $('.extEdit').show();
+  $.getJSON("./test.pd.simple.json",function(data) {
+    $('#skeletonTitle').html('edit presentation');
+    window.editorFiller.set(data);
+    $('#btnApplySend').attr('data-apply','pd');
+    location.href='#editorFiller';
+  });
+}
+const getVP = function() {
+  $('.extEdit').show();
+  let payload = { "type": "CONTRL","retrievePresentation": {
+    schema: '0x...',
+    resolver: '0x...'
+    }
+  };
+  window.editorFiller.set(payload);
+  $('#btnApplySend').attr('data-apply','vp');
+  location.href='#editorFiller';
+}
 const schemasTo = function() {
     $('.extEdit').show();
     $('#skeletonTitle').html('list schemas of');
@@ -104,6 +132,12 @@ const schemasTo = function() {
     location.href='#editorFiller';
 }
 
+const loadUrl = function() {
+  $.getJSON($('#jsonUrl').val(),function(data) {
+      data["$id"] = $('#jsonUrl').val();
+      window.editorFiller.set(data);
+  });
+}
 
 const applySend = function() {
   return new Promise(async function(resolve,reject) {
@@ -131,7 +165,18 @@ const applySend = function() {
        window.editorOut.set(payload);
        didComm(await builder.toJWT(payload),$('#presentTo').val());
      }
-
+     if($('#btnApplySend').attr('data-apply') == 'pd') {
+       let builder = new WebClient.JWTBuilder({identity:window.identity});
+       let payload = window.editorFiller.get();
+       window.editorOut.set(payload);
+       didComm(await builder.toJWT(payload),$('#presentTo').val());
+     }
+     if($('#btnApplySend').attr('data-apply') == 'vp') {
+       let builder = new WebClient.JWTBuilder({identity:window.identity});
+       let payload = window.editorFiller.get();
+       window.editorOut.set(payload);
+       didComm(await builder.toJWT(payload));
+     }
      resolve();
    });
 }
@@ -158,11 +203,15 @@ $(document).ready(async function() {
   $('#browserId').html(window.identity.identifier);
   $('#btnPing').click(ping);
   $('#btnPresentations').click(presentations);
+  $('#btnPDs').click(pds);
   $('#btnSchemas').click(schemas);
   $('#btnAddSchema').click(addSchema);
+  $('#btnAddPD').click(addPD);
+  $('#btnGetVP').click(getVP);
   $('#btnAddWebhook').click(addWebhook);
   $('#btnSchemasTo').click(schemasTo);
   $('#btnAddPresentation').click(addPresentation);
   $('#btnApplySend').click(applySend);
   $('#btnBuffer').click(buffer);
+  $('#btnJsonUrl').click(loadUrl);
 })

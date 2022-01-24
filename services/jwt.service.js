@@ -88,8 +88,21 @@ module.exports = {
 									identity:did.issuer
 								});
 							}
+							if(typeof did.payload.retrievePresentation !== 'undefined') {
+								console.log(did.payload);
+								response.claim = await ctx.call("maskedidentity.retrievePresentation",{
+									identity:did.issuer,
+									schema:did.payload.retrievePresentation.schema,
+									resolver:did.payload.retrievePresentation.resolver
+								});
+							}
 							if(typeof did.payload.listPresentations !== 'undefined') {
 								response.presentations = await ctx.call("maskedidentity.listPresentations",{
+									identity:did.issuer
+								});
+							}
+							if(typeof did.payload.listPDs !== 'undefined') {
+								response.presentation_definitions = await ctx.call("maskedidentity.listPDs",{
 									identity:did.issuer
 								});
 							}
@@ -108,15 +121,20 @@ module.exports = {
 						if(typeof ctx.params.identity !== 'undefined') ctx.params.to = ctx.params.identity;
 
 						if((typeof ctx.params.to !== 'undefined')&&(typeof ctx.params.schema !== 'undefined')) {
-							let presentation  = await ctx.call("maskedidentity.addPresentation",{identity:ctx.params.to,presentation:did,schema:ctx.params.schema});
+							let presentation  = await ctx.call("maskedidentity.addPresentation",{identity:ctx.params.to,presentation:did,schema:ctx.params.schema,from:maskedidentity.publicKey});
 							response.presentation = presentation.hash;
 							if(typeof presentation.error !== 'undefined') {
 								response.type = "APERAK";
 								response.error = presentation.error;
 							}
 						} else {
-							response.type = "APERAK";
-							response.error = "Presentation without Schema";
+							// Schema Less might be a PD
+							if(typeof did.payload.presentation_definition !== 'undefined') {
+								response.presentation_definition = await ctx.call("maskedidentity.addPD",{identity:ctx.params.to,from:maskedidentity.publicKey,pd:did.payload.presentation_definition})
+							} else {
+								response.type = "APERAK";
+								response.error = "Presentation without Schema";
+							}
 						}
 					}
 				}

@@ -51,15 +51,19 @@
                    <button type="button" class="btn btn-primary" id="btnPing">PING</button>
                    <button type="button" class="btn btn-primary" id="btnSchemas">SCHEMAS</button>
                    <button type="button" class="btn btn-primary" id="btnPresentations">PRESENTATIONS</button>
+                   <button type="button" class="btn btn-primary" id="btnPDs">PDs</button>
                    <button type="button" class="btn btn-secondary" id="btnSchemasTo">SCHEMAS</button>
                    <button type="button" class="btn btn-secondary" id="btnAddSchema">+SCHEMA</button>
                    <button type="button" class="btn btn-secondary" id="btnAddWebhook">+WEBHOOK</button>
                    <button type="button" class="btn btn-secondary" id="btnAddPresentation">+PRESENTATION</button>
+                   <button type="button" class="btn btn-secondary" id="btnAddPD">+PD</button>
+                   <button type="button" class="btn btn-secondary" id="btnGetVP">+VP</button>
                    <button type="button" class="btn btn-default" id="btnBuffer">Buffer</button>
                 </div>
             </div>
           </div>
         </div>
+
 
         <div class="card-group" style="margin-top:25px">
           <div class="card" style="min-height:400px;" id="skeletonCard">
@@ -76,6 +80,17 @@
             </div>
             <div class="card-footer">
                 <button class="btn btn-primary float-end" id="btnApplySend">Apply and Send &raquo;</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-group" style="margin-top:25px">
+          <div class="card">
+            <div class="card-header">Load JSON (URL) to Editor</div>
+            <div class="card-body">
+              <div class="input-group form-group">
+                 <input type="url" id="jsonUrl" class="form-control" value="https://corrently.io/schemas/test.schema.nameageemail.json"/>
+                 <button type="button" class="btn btn-default" id="btnJsonUrl">Load</button>
+              </div>
             </div>
           </div>
         </div>

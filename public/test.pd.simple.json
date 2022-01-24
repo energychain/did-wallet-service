@@ -1,0 +1,12 @@
+{
+  "presentation_definition": {
+    "id": "0x03facd1e50e3b964705533f866da53a84959fe4994d1a5e178af6fc7d13ceee875",
+    "input_descriptors": [
+      {
+        "id": "0x094a76005580ed2f0eef91f412006c669a0c69a8a2d128e45b058fb6d9cb0303",
+        "name": "Name Age Emails",
+        "purpose": "0x0399a8daf43c1d595e93b3507063f26a1349f7b71c48ab5991f625afc1d4889083"
+      }
+    ]
+  }
+}
