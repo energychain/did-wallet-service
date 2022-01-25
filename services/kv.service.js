@@ -5,7 +5,8 @@ const Cloudwallet = require("cloudwallet");
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
-const masterKey = '0x4d3e20bde4455758814c77e6eb0231a58c548f8d653d011b7b9303696acaf240';
+// const masterKey = '0x4d3e20bde4455758814c77e6eb0231a58c548f8d653d011b7b9303696acaf240';
+const masterKey = '0x4d3e20bde4455758814c77e6eb0211a58c548f8d653d011b7b9303696acaf240';
 const memstorage = {};
 let masterwallet = null;
 

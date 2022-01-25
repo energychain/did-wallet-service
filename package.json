@@ -31,17 +31,15 @@
     "axios": "^0.24.0",
     "cloudwallet": "^0.5.8",
     "did-resolver": "^3.1.5",
-    "did-wallet-web": "^0.5.0",
+    "did-wallet-web": "^0.5.4",
     "dotenv": "^14.2.0",
     "eth-crypto": "^2.1.0",
     "ethers": "^5.5.3",
     "ethr-did": "^2.2.0",
     "ethr-did-resolver": "^5.0.3",
-    "ipfs": "^0.61.0",
     "jsontokens": "^3.0.0",
     "moleculer": "^0.14.16",
-    "moleculer-web": "^0.10.2",
-    "orbit-db": "^0.28.0"
+    "moleculer-web": "^0.10.2"
   },
   "engines": {
     "node": ">= 12.x.x"

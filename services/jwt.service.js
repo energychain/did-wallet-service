@@ -14,7 +14,7 @@ module.exports = {
 	settings: {
 		resolver:{
 			rpcUrl:"https://integration.corrently.io/",
-			name: "mainnet",
+//			name: "mainnet",
 			chainId: "6226",
 			registry:"0xda77BEeb5002e10be2F5B63E81Ce8cA8286D4335"
 		}
@@ -46,8 +46,9 @@ module.exports = {
 				let response = {type:'CONTRL'};
 
 				// Stage 1 - Resolve DID
-				const JWTResolver = require("did-wallet-web").JWTResolver;
 
+				const JWTResolver = require("did-wallet-web").JWTResolver;
+				this.settings.resolver.identifier = '0x0292c844af71ae69ec7cb67b37462ced2fea4277ba8174754013f4311367e78ea4';
 				const resolver = new JWTResolver(this.settings.resolver);
 				let did = { issuer: 'internal:0x0',payload:{} }
 				try {
